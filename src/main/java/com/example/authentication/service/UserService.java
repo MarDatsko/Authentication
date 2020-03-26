@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -28,8 +29,21 @@ public class UserService {
         return userRepository.findById(id).orElse(null);
     }
 
-    public User saveOrUpdate(User user) {
+    public User saveUser(User user) {
         return userRepository.save(user);
+    }
+
+    public User updateUser(Long id, User user) throws Exception {
+        User userFromDb = userRepository.findById(id).orElse(null);
+        if (userFromDb == null){
+            throw new Exception();
+        }
+        userFromDb.setUserName(user.getUserName());
+        userFromDb.setLastName(user.getLastName());
+        userFromDb.setLastName(user.getLastName());
+        userFromDb.setEmail(user.getEmail());
+
+        return userRepository.save(userFromDb);
     }
 
     public void delete(Long id) {

@@ -13,26 +13,36 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Log4j2
 @RestController
-@RequestMapping("/admin")
-public class AdminController {
+public class UsersController {
 
     private final UserService userService;
 
     @Autowired
-    public AdminController(UserService userService) {
+    public UsersController(UserService userService) {
         this.userService = userService;
     }
 
     @GetMapping("/users")
-    public ResponseEntity<List<User>> getAllUsers() {
+    public ResponseEntity<List<UserDto>> getAllUsers() {
+        List<UserDto> userDtoList = (userService.getAllUsers().stream()
+                .map(UserDto::mapUserToUserDto)
+                .collect(Collectors.toList()));
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(userDtoList);
+    }
+
+
+    @GetMapping("/admin")
+    public ResponseEntity<List<User>> getAllUsersForAdmin() {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(userService.getAllUsers());
     }
 
-    @PostMapping("/create")
+    @PostMapping("/admin")
     public ResponseEntity<User> createUser(@RequestBody UserDto userDto) {
         User user = new User();
         user.setUserName(userDto.getUserName());
@@ -43,12 +53,12 @@ public class AdminController {
         user.setCreateDate(new Date(System.currentTimeMillis()));
         user.setRole(UserRole.USER);
 
-        userService.saveOrUpdate(user);
+        userService.saveUser(user);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/admin/{id}")
     public HttpStatus deleteUser(@PathVariable(value = "id") Long id) {
         try {
             userService.delete(id);
@@ -58,9 +68,9 @@ public class AdminController {
         return HttpStatus.OK;
     }
 
-    @PutMapping("/update")
-    public ResponseEntity<User> updateUser(@RequestBody User user) {
-        userService.saveOrUpdate(user);
+    @PutMapping("/admin/{id}")
+    public ResponseEntity<User> updateUser(@PathVariable(value = "id") Long id, @RequestBody User user) throws Exception {
+        userService.updateUser(id, user);
         return ResponseEntity.ok().body(user);
     }
 }
